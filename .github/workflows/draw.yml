@@ -16,28 +16,18 @@ jobs:
       commit_message: "[Draw] ${{ github.event.head_commit.message }}"
       destination: "commit"
       fail_on_error: ${{ fromJSON(true) }}
-      skip_fetch: false
+      skip_push: true  # Add this to prevent automatic push
 
-  handle-push-conflict:
+  push-changes:
     needs: draw
     runs-on: ubuntu-latest
-    if: failure()
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Pull latest changes
-        run: |
-          git config user.email "action@github.com"
-          git config user.name "GitHub Action"
-          git pull origin main --rebase
-
-      - name: Auto commit
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "[Draw] Auto-generated keymap drawings"
-          file_pattern: "keymap-drawer/*"
-          skip_fetch: false
-          skip_dirty_check: true
+        run: git pull origin main --rebase
+      - name: Push changes
+        run: git push
