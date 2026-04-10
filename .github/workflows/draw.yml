@@ -16,4 +16,28 @@ jobs:
       commit_message: "[Draw] ${{ github.event.head_commit.message }}"
       destination: "commit"
       fail_on_error: ${{ fromJSON(true) }}
-      skip_fetch: false  
+      skip_fetch: false
+
+  handle-push-conflict:
+    needs: draw
+    runs-on: ubuntu-latest
+    if: failure()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git pull origin main --rebase
+
+      - name: Auto commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "[Draw] Auto-generated keymap drawings"
+          file_pattern: "keymap-drawer/*"
+          skip_fetch: false
+          skip_dirty_check: true
